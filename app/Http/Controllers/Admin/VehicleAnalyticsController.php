@@ -62,9 +62,22 @@ class VehicleAnalyticsController extends Controller
 
         // Service Providers Stats
         $totalProviders = ServiceProvider::count();
-        $activeProviders = ServiceProvider::count();
+        $activeProviders = ServiceProvider::where('status', true)->count();
 
-        $providerPerformance = ServiceProvider::withCount('maintenanceSchedules')->orderBy('maintenance_schedules_count', 'desc')->limit(10)->get();
+        // Use a safer approach for provider performance with error handling
+        try {
+            $providerPerformance = ServiceProvider::withCount('maintenanceSchedules')
+                ->orderBy('maintenance_schedules_count', 'desc')
+                ->limit(10)
+                ->get();
+        } catch (\Exception $e) {
+            // Fallback: get providers without count if relationship fails
+            $providerPerformance = ServiceProvider::orderBy('name')->limit(10)->get();
+            // Add a manual count for each provider
+            $providerPerformance->each(function ($provider) {
+                $provider->maintenance_schedules_count = MaintenanceSchedule::where('service_provider_id', $provider->id)->count();
+            });
+        }
         $totalCost = MaintenanceSchedule::sum('estimated_cost');
         $averageRating = 0; // Placeholder
         $serviceHistory = MaintenanceSchedule::with('vehicle')->latest()->limit(10)->get();
