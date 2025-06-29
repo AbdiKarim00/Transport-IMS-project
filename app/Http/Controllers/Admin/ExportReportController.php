@@ -378,14 +378,14 @@ class ExportReportController extends Controller
     private function getMaintenanceData(Carbon $startDate, Carbon $endDate): array
     {
         return MaintenanceRecord::with(['vehicle', 'type', 'status', 'provider'])
-            ->whereBetween('service_date', [$startDate, $endDate])
+            ->whereBetween('scheduled_date', [$startDate, $endDate])
             ->get()
             ->map(function ($record) {
                 return [
                     $record->id,
                     $record->vehicle?->registration_no ?? 'N/A',
                     $record->type?->name ?? 'N/A',
-                    $record->service_date?->format('Y-m-d') ?? 'N/A',
+                    $record->scheduled_date?->format('Y-m-d') ?? 'N/A',
                     $record->estimated_cost ? number_format($record->estimated_cost, 2) : 'N/A',
                     $record->description ?? 'N/A',
                     $record->status?->name ?? 'N/A',
@@ -514,7 +514,7 @@ class ExportReportController extends Controller
         ];
 
         // Maintenance costs
-        $maintenanceCosts = MaintenanceRecord::whereBetween('service_date', [$startDate, $endDate])->sum('estimated_cost');
+        $maintenanceCosts = MaintenanceRecord::whereBetween('scheduled_date', [$startDate, $endDate])->sum('estimated_cost');
         $data[] = [
             $startDate->format('Y-m') . ' - ' . $endDate->format('Y-m'),
             'Maintenance Costs',
@@ -613,13 +613,13 @@ class ExportReportController extends Controller
     {
         return [
             'total_trips' => Trip::whereBetween('start_time', [$startDate, $endDate])->count(),
-            'total_maintenance' => MaintenanceRecord::whereBetween('service_date', [$startDate, $endDate])->count(),
+            'total_maintenance' => MaintenanceRecord::whereBetween('scheduled_date', [$startDate, $endDate])->count(),
             'total_fuel_transactions' => FuelRecord::whereBetween('transaction_date', [$startDate, $endDate])->count(),
             'total_incidents' => Incident::whereBetween('incident_date', [$startDate, $endDate])->count(),
             'active_vehicles' => Vehicle::count(),
             'active_drivers' => Driver::where('status', 'Active')->count(),
             'total_fuel_cost' => FuelRecord::whereBetween('transaction_date', [$startDate, $endDate])->sum('cost'),
-            'total_maintenance_cost' => MaintenanceRecord::whereBetween('service_date', [$startDate, $endDate])->sum('estimated_cost')
+            'total_maintenance_cost' => MaintenanceRecord::whereBetween('scheduled_date', [$startDate, $endDate])->sum('estimated_cost')
         ];
     }
 
