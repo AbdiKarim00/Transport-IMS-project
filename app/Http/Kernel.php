@@ -3,10 +3,6 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use App\Http\Middleware\AdminMiddleware;
-use App\Http\Middleware\Authenticate;
-use App\Http\Middleware\RedirectIfAuthenticated;
-use App\Http\Middleware\ValidateSignature;
 
 class Kernel extends HttpKernel
 {
@@ -18,7 +14,12 @@ class Kernel extends HttpKernel
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        //
+        \App\Http\Middleware\TrustProxies::class, // Assuming this will be created or should use framework default if not custom
+        \Illuminate\Http\Middleware\HandleCors::class,
+        \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \Illuminate\Foundation\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
 
     /**
@@ -28,41 +29,40 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
-            // Web middleware group
+            \App\Http\Middleware\EncryptCookies::class, // Assuming this will be created or should use framework default
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class, // Assuming this will be created or should use framework default
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
         'api' => [
-            // API middleware group
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            'throttle:api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
     /**
-     * The application's route middleware aliases.
+     * The application's middleware aliases.
      *
-     * Aliases may be used instead of class names to assign middleware to routes.
+     * Aliases may be used to conveniently assign middleware to routes and groups.
      *
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
+        'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
-    ];
-
-    /**
-     * Register any other middleware.
-     *
-     * @var array<string, class-string|string>
-     */
-    protected $routeMiddleware = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'signed' => \App\Http\Middleware\ValidateSignature::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class, // Corrected namespace
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'admin' => \App\Http\Middleware\AdminMiddleware::class, // Custom admin middleware
     ];
 }
