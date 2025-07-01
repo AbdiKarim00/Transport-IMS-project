@@ -17,10 +17,25 @@ class DriverController extends Controller
 
     public function showDashboard()
     {
-        $driver = auth()->user()->driver;
+        $user = auth()->user();
 
+        // Try to get driver profile, create if doesn't exist
+        $driver = null;
+
+        if (method_exists($user, 'driver')) {
+            $driver = $user->driver;
+        }
+
+        // If no driver profile exists, create a basic one or use user data
         if (!$driver) {
-            return redirect()->route('dashboard')->with('error', 'Driver profile not found.');
+            // For now, create a mock driver object with user data
+            $driver = (object) [
+                'id' => $user->id,
+                'user' => $user,
+                'employee_id' => $user->personal_number ?? 'N/A',
+                'hire_date' => $user->created_at ?? now(),
+                'is_active' => true,
+            ];
         }
 
         // Get current assignments and trips
