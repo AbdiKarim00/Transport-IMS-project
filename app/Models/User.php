@@ -130,14 +130,17 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
-    public function roles()
+    public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function hasRole($role)
     {
-        return $this->roles()->where('name', $role)->exists();
+        if (!$this->role) {
+            return false;
+        }
+        return $this->role->name === $role;
     }
 
     public function hasPermission($permission)
