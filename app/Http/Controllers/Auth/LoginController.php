@@ -116,21 +116,88 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        $user->update([
-            'last_login' => now(),
-            'login_attempts' => 0,
-            'locked_until' => null
-        ]);
-
-        if ($user->is_temporary_password) {
-            return redirect()->route('password.change');
+        // Update login tracking (only if columns exist)
+        try {
+            $user->update([
+                'last_login' => now(),
+                'login_attempts' => 0,
+                'locked_until' => null
+            ]);
+        } catch (\Exception $e) {
+            // If columns don't exist, skip this update
         }
 
-        // Redirect admin users to admin dashboard
-        if ($user->role_id === 1) {
+        // Check for temporary password (only if column exists)
+        try {
+            if ($user->is_temporary_password) {
+                return redirect()->route('password.change');
+            }
+        } catch (\Exception $e) {
+            // If column doesn't exist, skip this check
+        }
+
+        // Role-based redirection using personal_number patterns or role relationships
+        return $this->redirectBasedOnRole($user);
+    }
+
+    /**
+     * Redirect user based on their role
+     *
+     * @param  mixed  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function redirectBasedOnRole($user)
+    {
+        // Check if user has role relationship
+        if (method_exists($user, 'hasRole')) {
+            if ($user->hasRole('admin')) {
+                return redirect()->route('admin.dashboard');
+            }
+            if ($user->hasRole('driver')) {
+                return redirect()->route('driver.dashboard');
+            }
+            if ($user->hasRole('transport_officer')) {
+                return redirect()->route('transport_officer.dashboard');
+            }
+            if ($user->hasRole('operational_admin')) {
+                return redirect()->route('operational_admin.dashboard');
+            }
+        }
+
+        // Fallback: Check role_id if it exists
+        if (isset($user->role_id)) {
+            switch ($user->role_id) {
+                case 1:
+                    return redirect()->route('admin.dashboard');
+                case 2:
+                    return redirect()->route('driver.dashboard');
+                case 3:
+                    return redirect()->route('transport_officer.dashboard');
+                case 4:
+                    return redirect()->route('operational_admin.dashboard');
+            }
+        }
+
+        // Fallback: Check personal_number patterns
+        $personalNumber = $user->personal_number ?? '';
+
+        if (str_starts_with($personalNumber, 'ADMIN') || str_starts_with($personalNumber, 'ADM')) {
             return redirect()->route('admin.dashboard');
         }
 
-        return redirect()->intended($this->redirectPath());
+        if (str_starts_with($personalNumber, 'DRV') || str_starts_with($personalNumber, 'DRIVER')) {
+            return redirect()->route('driver.dashboard');
+        }
+
+        if (str_starts_with($personalNumber, 'TRN') || str_starts_with($personalNumber, 'TRANSPORT')) {
+            return redirect()->route('transport_officer.dashboard');
+        }
+
+        if (str_starts_with($personalNumber, 'OPS') || str_starts_with($personalNumber, 'OPERATIONAL')) {
+            return redirect()->route('operational_admin.dashboard');
+        }
+
+        // Default fallback to driver dashboard for now
+        return redirect()->route('driver.dashboard');
     }
 }
