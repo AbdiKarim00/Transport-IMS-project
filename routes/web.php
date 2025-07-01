@@ -118,8 +118,8 @@ Route::get('/admin/safety-dashboard', [App\Http\Controllers\Admin\SafetyDashboar
 
 // Role-based Dashboard Routes
 Route::middleware(['auth'])->group(function () {
-    // Driver Dashboard Routes
-    Route::prefix('driver')->name('driver.')->group(function () {
+    // Driver Dashboard Routes - Protected by Driver Middleware
+    Route::middleware(['driver'])->prefix('driver')->name('driver.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'showDashboard'])->name('dashboard');
         // Placeholder routes for navigation (implement as needed)
         Route::get('/trips', function() { return view('driver.trips'); })->name('trips');
