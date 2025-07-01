@@ -56,8 +56,62 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Role-based Dashboard Redirection - Remove default dashboard route
-    // Users will be redirected to role-specific dashboards via LoginController
+    // Catch-all dashboard route - redirects to role-specific dashboard
+    Route::get('/dashboard', function() {
+        $user = auth()->user();
+
+        // Check if user has role relationship
+        if (method_exists($user, 'hasRole')) {
+            if ($user->hasRole('admin')) {
+                return redirect()->route('admin.dashboard');
+            }
+            if ($user->hasRole('driver')) {
+                return redirect()->route('driver.dashboard');
+            }
+            if ($user->hasRole('transport_officer')) {
+                return redirect()->route('transport_officer.dashboard');
+            }
+            if ($user->hasRole('operational_admin')) {
+                return redirect()->route('operational_admin.dashboard');
+            }
+        }
+
+        // Fallback: Check role_id if it exists
+        if (isset($user->role_id)) {
+            switch ($user->role_id) {
+                case 1:
+                    return redirect()->route('admin.dashboard');
+                case 2:
+                    return redirect()->route('driver.dashboard');
+                case 3:
+                    return redirect()->route('transport_officer.dashboard');
+                case 4:
+                    return redirect()->route('operational_admin.dashboard');
+            }
+        }
+
+        // Fallback: Check personal_number patterns
+        $personalNumber = $user->personal_number ?? '';
+
+        if (str_starts_with($personalNumber, 'ADMIN') || str_starts_with($personalNumber, 'ADM')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if (str_starts_with($personalNumber, 'DRV') || str_starts_with($personalNumber, 'DRIVER')) {
+            return redirect()->route('driver.dashboard');
+        }
+
+        if (str_starts_with($personalNumber, 'TRN') || str_starts_with($personalNumber, 'TRANSPORT')) {
+            return redirect()->route('transport_officer.dashboard');
+        }
+
+        if (str_starts_with($personalNumber, 'OPS') || str_starts_with($personalNumber, 'OPERATIONAL')) {
+            return redirect()->route('operational_admin.dashboard');
+        }
+
+        // Final fallback to driver dashboard
+        return redirect()->route('driver.dashboard');
+    })->name('dashboard');
 
     // Admin Routes - Only Analytics and Reports (Managerial Functions)
     Route::middleware([AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
