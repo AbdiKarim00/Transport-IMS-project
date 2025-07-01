@@ -142,8 +142,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settings', function() { return view('transport_officer.settings'); })->name('settings');
     });
 
-    // Operational Admin Dashboard Routes
-    Route::prefix('operational-admin')->name('operational_admin.')->group(function () {
+    // Operational Admin Dashboard Routes - Protected by Operational Admin Middleware
+    Route::middleware(['operational_admin'])->prefix('operational-admin')->name('operational_admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\OperationalAdminController::class, 'index'])->name('dashboard');
         // Placeholder routes for navigation (implement as needed)
         Route::get('/fleet', function() { return view('operational_admin.fleet'); })->name('fleet');
