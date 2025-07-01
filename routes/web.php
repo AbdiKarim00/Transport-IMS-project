@@ -129,8 +129,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settings', function() { return view('driver.settings'); })->name('settings');
     });
 
-    // Transport Officer Dashboard Routes
-    Route::prefix('transport-officer')->name('transport_officer.')->group(function () {
+    // Transport Officer Dashboard Routes - Protected by Transport Officer Middleware
+    Route::middleware(['transport_officer'])->prefix('transport-officer')->name('transport_officer.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\TransportOfficerController::class, 'index'])->name('dashboard');
         // Placeholder routes for navigation (implement as needed)
         Route::get('/trips', function() { return view('transport_officer.trips'); })->name('trips');
