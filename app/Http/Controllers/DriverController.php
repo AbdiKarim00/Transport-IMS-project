@@ -38,29 +38,45 @@ class DriverController extends Controller
             ];
         }
 
-        // Get current assignments and trips
-        $currentTrip = $driver->trips()
-            ->whereIn('status', ['scheduled', 'in_progress'])
-            ->with(['vehicle', 'route'])
-            ->first();
+        // Get current assignments and trips (handle if relationships don't exist)
+        $currentTrip = null;
+        $upcomingTrips = collect();
+        $recentTrips = collect();
+        $assignedVehicle = null;
 
-        $upcomingTrips = $driver->trips()
-            ->where('status', 'scheduled')
-            ->where('scheduled_start_time', '>', now())
-            ->with(['vehicle', 'route'])
-            ->orderBy('scheduled_start_time')
-            ->limit(5)
-            ->get();
+        // Only query if driver has proper relationships
+        if (is_object($driver) && method_exists($driver, 'trips') && isset($driver->id)) {
+            try {
+                $currentTrip = $driver->trips()
+                    ->whereIn('status', ['scheduled', 'in_progress'])
+                    ->with(['vehicle', 'route'])
+                    ->first();
 
-        $recentTrips = $driver->trips()
-            ->whereIn('status', ['completed', 'cancelled'])
-            ->with(['vehicle', 'route'])
-            ->orderBy('updated_at', 'desc')
-            ->limit(10)
-            ->get();
+                $upcomingTrips = $driver->trips()
+                    ->where('status', 'scheduled')
+                    ->where('scheduled_start_time', '>', now())
+                    ->with(['vehicle', 'route'])
+                    ->orderBy('scheduled_start_time')
+                    ->limit(5)
+                    ->get();
 
-        // Vehicle information
-        $assignedVehicle = $driver->currentVehicleAssignment?->vehicle;
+                $recentTrips = $driver->trips()
+                    ->whereIn('status', ['completed', 'cancelled'])
+                    ->with(['vehicle', 'route'])
+                    ->orderBy('updated_at', 'desc')
+                    ->limit(10)
+                    ->get();
+
+                // Vehicle information
+                $assignedVehicle = $driver->currentVehicleAssignment?->vehicle;
+            } catch (\Exception $e) {
+                // If relationships don't exist, use empty collections
+                $currentTrip = null;
+                $upcomingTrips = collect();
+                $recentTrips = collect();
+                $assignedVehicle = null;
+            }
+        }
 
         // Driver statistics
         $stats = [
