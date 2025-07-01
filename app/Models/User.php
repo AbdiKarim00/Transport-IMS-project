@@ -63,6 +63,34 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get the user's first name.
+     */
+    public function getFirstNameAttribute()
+    {
+        if (!empty($this->attributes['first_name'])) {
+            return $this->attributes['first_name'];
+        }
+
+        // Fallback: Extract from name field
+        $nameParts = explode(' ', $this->name);
+        return $nameParts[0] ?? '';
+    }
+
+    /**
+     * Get the user's last name.
+     */
+    public function getLastNameAttribute()
+    {
+        if (!empty($this->attributes['last_name'])) {
+            return $this->attributes['last_name'];
+        }
+
+        // Fallback: Extract from name field
+        $nameParts = explode(' ', $this->name);
+        return count($nameParts) > 1 ? $nameParts[1] : '';
+    }
+
+    /**
      * Get the department that the user belongs to.
      */
     public function department(): BelongsTo
