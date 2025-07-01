@@ -116,9 +116,43 @@ Route::get('/admin/safety-dashboard', [App\Http\Controllers\Admin\SafetyDashboar
     ->name('admin.safety-dashboard')
     ->middleware(['auth', 'admin']);
 
-// Remove old dashboard routes
-// Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'index']);
-// Route::get('/driver/dashboard', [App\Http\Controllers\DriverController::class, 'showDashboard']);
-// Route::get('/transport-officer/dashboard', [App\Http\Controllers\TransportOfficerController::class, 'index']);
-// Route::get('/operational-admin/dashboard', [App\Http\Controllers\OperationalAdminController::class, 'index']);
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Role-based Dashboard Routes
+Route::middleware(['auth'])->group(function () {
+    // Driver Dashboard Routes
+    Route::prefix('driver')->name('driver.')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'showDashboard'])->name('dashboard');
+        // Placeholder routes for navigation (implement as needed)
+        Route::get('/trips', function() { return view('driver.trips'); })->name('trips');
+        Route::get('/vehicle', function() { return view('driver.vehicle'); })->name('vehicle');
+        Route::get('/reports', function() { return view('driver.reports'); })->name('reports');
+        Route::get('/profile', function() { return view('driver.profile'); })->name('profile');
+        Route::get('/settings', function() { return view('driver.settings'); })->name('settings');
+    });
+
+    // Transport Officer Dashboard Routes
+    Route::prefix('transport-officer')->name('transport_officer.')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\TransportOfficerController::class, 'index'])->name('dashboard');
+        // Placeholder routes for navigation (implement as needed)
+        Route::get('/trips', function() { return view('transport_officer.trips'); })->name('trips');
+        Route::get('/drivers', function() { return view('transport_officer.drivers'); })->name('drivers');
+        Route::get('/vehicles', function() { return view('transport_officer.vehicles'); })->name('vehicles');
+        Route::get('/routes', function() { return view('transport_officer.routes'); })->name('routes');
+        Route::get('/reports', function() { return view('transport_officer.reports'); })->name('reports');
+        Route::get('/profile', function() { return view('transport_officer.profile'); })->name('profile');
+        Route::get('/settings', function() { return view('transport_officer.settings'); })->name('settings');
+    });
+
+    // Operational Admin Dashboard Routes
+    Route::prefix('operational-admin')->name('operational_admin.')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\OperationalAdminController::class, 'index'])->name('dashboard');
+        // Placeholder routes for navigation (implement as needed)
+        Route::get('/fleet', function() { return view('operational_admin.fleet'); })->name('fleet');
+        Route::get('/maintenance', function() { return view('operational_admin.maintenance'); })->name('maintenance');
+        Route::get('/fuel', function() { return view('operational_admin.fuel'); })->name('fuel');
+        Route::get('/costs', function() { return view('operational_admin.costs'); })->name('costs');
+        Route::get('/providers', function() { return view('operational_admin.providers'); })->name('providers');
+        Route::get('/profile', function() { return view('operational_admin.profile'); })->name('profile');
+        Route::get('/settings', function() { return view('operational_admin.settings'); })->name('settings');
+        Route::get('/budget', function() { return view('operational_admin.budget'); })->name('budget');
+    });
+});
