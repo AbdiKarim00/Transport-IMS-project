@@ -56,8 +56,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Default Dashboard
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    // Role-based Dashboard Redirection - Remove default dashboard route
+    // Users will be redirected to role-specific dashboards via LoginController
 
     // Admin Routes - Only Analytics and Reports (Managerial Functions)
     Route::middleware([AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
