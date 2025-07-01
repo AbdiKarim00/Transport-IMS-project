@@ -61,7 +61,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     // Admin Routes - Only Analytics and Reports (Managerial Functions)
     Route::middleware([AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/vehicle-analytics', [VehicleAnalyticsController::class, 'index'])->name('vehicle-analytics');
         Route::get('/vehicle-analytics/permits', [VehicleAnalyticsController::class, 'permits'])->name('vehicle-analytics.permits');
         Route::get('/vehicle-analytics/odometer', [VehicleAnalyticsController::class, 'odometer'])->name('vehicle-analytics.odometer');
