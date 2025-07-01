@@ -15,10 +15,11 @@ class RouteServiceProvider extends ServiceProvider
      * The path to your application's "home" route.
      *
      * Typically, users are redirected here after authentication.
+     * Note: Actual redirection is handled by LoginController based on user role
      *
      * @var string
      */
-    public const HOME = '/dashboard';
+    public const HOME = '/driver/dashboard'; // Default fallback, but LoginController handles actual routing
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
